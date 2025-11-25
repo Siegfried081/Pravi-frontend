@@ -4,7 +4,6 @@ export default function Register() {
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
-  const [dataNascimento, setDataNascimento] = useState("");
   const [erro, setErro] = useState("");
   const [sucesso, setSucesso] = useState("");
 
@@ -17,25 +16,29 @@ export default function Register() {
       const response = await fetch("http://localhost:8080/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          nome,
-          email,
-          senha,
-          dataNascimento,
-        }),
+        body: JSON.stringify({ nome, email, senha }),
       });
 
-      const data = await response.json();
+      let data = null;
+      // tenta ler JSON só se vier mesmo
+      const isJson =
+        response.headers
+          .get("content-type")
+          ?.includes("application/json");
+      if (isJson) {
+        data = await response.json();
+      }
 
       if (!response.ok) {
-        throw new Error(data.erro || "Erro ao registrar usuário.");
+        throw new Error(
+          data?.erro || `Erro ao registrar usuário (status ${response.status}).`
+        );
       }
 
       setSucesso("Conta criada com sucesso! Redirecionando...");
       setTimeout(() => (window.location.href = "/"), 1500);
-
     } catch (error) {
-      setErro(error.message);
+      setErro(error.message || "Erro inesperado ao registrar.");
     }
   }
 
@@ -72,18 +75,9 @@ export default function Register() {
         <input
           type="password"
           required
-          className="w-full p-2 rounded bg-gray-700 mb-4"
+          className="w-full p-2 rounded bg-gray-700 mb-6"
           value={senha}
           onChange={(e) => setSenha(e.target.value)}
-        />
-
-        <label className="block mb-2">Data de nascimento</label>
-        <input
-          type="date"
-          required
-          className="w-full p-2 rounded bg-gray-700 mb-6"
-          value={dataNascimento}
-          onChange={(e) => setDataNascimento(e.target.value)}
         />
 
         <button

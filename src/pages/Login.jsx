@@ -10,23 +10,23 @@ export default function Login() {
     setErro("");
 
     try {
-      const response = await fetch("http://seu-ip-ec2:8080/auth/login", {
+      const response = await fetch("http://localhost:8080/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, senha }),
       });
 
       if (!response.ok) {
-        const data = await response.json();
+        const data = await response.json().catch(() => ({}));
         throw new Error(data.erro || "Erro no login.");
       }
 
-      const token = await response.text(); // seu back retorna o token como string
+      const token = await response.text(); // backend retorna token como string
       localStorage.setItem("token", token);
 
       window.location.href = "/dashboard";
     } catch (err) {
-      setErro(err.message);
+      setErro(err.message || "Erro desconhecido.");
     }
   }
 
@@ -43,6 +43,7 @@ export default function Login() {
         <label className="block mb-2">Email</label>
         <input
           type="email"
+          required
           className="w-full p-2 rounded bg-gray-700 mb-4"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
@@ -51,6 +52,7 @@ export default function Login() {
         <label className="block mb-2">Senha</label>
         <input
           type="password"
+          required
           className="w-full p-2 rounded bg-gray-700 mb-6"
           value={senha}
           onChange={(e) => setSenha(e.target.value)}
@@ -64,7 +66,10 @@ export default function Login() {
         </button>
 
         <p className="text-center mt-4 text-sm text-gray-400">
-          Ainda não possui conta? <a className="underline" href="/register">Criar conta</a>
+          Ainda não possui conta?{" "}
+          <a className="underline" href="/register">
+            Criar conta
+          </a>
         </p>
       </form>
     </div>
