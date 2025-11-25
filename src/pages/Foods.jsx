@@ -18,42 +18,33 @@ export default function Foods() {
 
   const token = localStorage.getItem("token");
 
-  // =============================
-  // VERIFICAR SE O USUÁRIO TEM FAMÍLIA
-  // =============================
+  function estaVencido(dataValidade) {
+    return new Date(dataValidade) < new Date();
+  }
+
   async function verificarFamilia() {
     try {
-      const response = await fetch("http://localhost:8080/usuarios/me", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+      const res = await fetch("http://localhost:8080/usuarios/me", {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!response.ok) throw new Error();
+      if (!res.ok) throw new Error();
 
-      const data = await response.json();
-
+      const data = await res.json();
       setTemFamilia(Boolean(data.idFamilia));
     } catch {
       setTemFamilia(false);
     }
   }
 
-  // =============================
-  // Carregar alimentos do usuário
-  // =============================
   async function carregarMeusAlimentos() {
     try {
       setLoading(true);
-
-      const response = await fetch("http://localhost:8080/alimentos", {
+      const resp = await fetch("http://localhost:8080/alimentos", {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (!response.ok) throw new Error("Erro ao carregar seus alimentos");
-
-      const data = await response.json();
-      setMeusAlimentos(data);
+      if (!resp.ok) throw new Error("Erro ao carregar alimentos");
+      setMeusAlimentos(await resp.json());
     } catch (err) {
       setErro(err.message);
     } finally {
@@ -61,22 +52,14 @@ export default function Foods() {
     }
   }
 
-  // =============================
-  // Carregar alimentos da família
-  // =============================
   async function carregarFamiliaAlimentos() {
     try {
       setLoading(true);
-
-      const response = await fetch("http://localhost:8080/alimentos/familia", {
+      const resp = await fetch("http://localhost:8080/alimentos/familia", {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      if (!response.ok)
-        throw new Error("Erro ao carregar alimentos da família");
-
-      const data = await response.json();
-      setFamiliaAlimentos(data);
+      if (!resp.ok) throw new Error("Erro ao carregar alimentos da família");
+      setFamiliaAlimentos(await resp.json());
     } catch (err) {
       setErro(err.message);
     } finally {
@@ -84,21 +67,16 @@ export default function Foods() {
     }
   }
 
-  // Carrega na abertura da página
   useEffect(() => {
     verificarFamilia();
     carregarMeusAlimentos();
   }, []);
 
-  // =============================
-  // Registrar alimento
-  // =============================
   async function registrarAlimento(e) {
     e.preventDefault();
-    setErro("");
 
     try {
-      const response = await fetch("http://localhost:8080/alimentos", {
+      const resp = await fetch("http://localhost:8080/alimentos", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -112,108 +90,98 @@ export default function Foods() {
         }),
       });
 
-      if (!response.ok) {
-        const data = await response.json().catch(() => ({}));
-        throw new Error(data.erro || "Erro ao registrar alimento");
-      }
+      if (!resp.ok) throw new Error("Erro ao registrar alimento");
 
       setNovoNome("");
       setNovaValidade("");
       setNovaCategoria("");
       setNovaQuantidade(1);
 
-      setTab("meus");
       carregarMeusAlimentos();
+      setTab("meus");
     } catch (err) {
       setErro(err.message);
     }
   }
 
-  // =============================
-  // Deletar alimento
-  // =============================
   async function deletarAlimento(id) {
-  if (!confirm("Deseja excluir este alimento?")) return;
+    if (!confirm("Deseja excluir este alimento?")) return;
 
-  try {
-    const response = await fetch(
-      `http://localhost:8080/alimentos/${id}`,
-      {
+    try {
+      const resp = await fetch(`http://localhost:8080/alimentos/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+      });
 
-    if (!response.ok) throw new Error("Erro ao deletar alimento");
+      if (!resp.ok) throw new Error("Erro ao deletar");
 
-    carregarMeusAlimentos();
-
-    // 🔥 SÓ CARREGA ALIMENTOS DA FAMÍLIA SE O USUÁRIO TIVER FAMÍLIA
-    if (temFamilia) {
-      carregarFamiliaAlimentos();
-    }
+      carregarMeusAlimentos();
+      if (temFamilia) carregarFamiliaAlimentos();
 
     } catch (err) {
       setErro(err.message);
     }
   }
 
-
-  // =============================
-  // Componente de lista
-  // =============================
   function Lista({ dados }) {
     if (loading) return <p>Carregando...</p>;
-    if (!dados.length)
-      return <p className="text-gray-400">Nenhum alimento encontrado.</p>;
+    if (!dados.length) return <p className="text-gray-400">Nenhum alimento encontrado.</p>;
 
     return (
       <ul className="space-y-3">
-        {dados.map((a) => (
-          <li
-            key={a.idAlimento}
-            className="bg-gray-800 p-4 rounded flex justify-between"
-          >
-            <div>
-              <h2 className="text-lg font-bold">{a.nome}</h2>
-              <p>Validade: {a.dataValidade}</p>
-              <p>Quantidade: {a.quantidade}</p>
-              <p>Categoria: {a.categoria}</p>
-            </div>
+        {dados.map((a) => {
+          const vencido = estaVencido(a.dataValidade);
 
-            <button
-              onClick={() => deletarAlimento(a.idAlimento)}
-              className="bg-red-600 px-4 py-2 rounded"
+          return (
+            <li
+              key={a.idAlimento}
+              className={`p-4 rounded flex justify-between ${
+                vencido
+                  ? "bg-red-900 border border-red-700"
+                  : "bg-gray-800"
+              }`}
             >
-              Remover
-            </button>
-          </li>
-        ))}
+              <div>
+                <h2 className="text-lg font-bold">{a.nome}</h2>
+
+                <p>
+                  Validade:{" "}
+                  <span className={vencido ? "text-red-400 font-bold" : ""}>
+                    {a.dataValidade}
+                  </span>
+                </p>
+
+                {vencido && (
+                  <p className="text-yellow-400 font-bold">⚠ VENCIDO</p>
+                )}
+
+                <p>Quantidade: {a.quantidade}</p>
+                <p>Categoria: {a.categoria}</p>
+              </div>
+
+              <button
+                onClick={() => deletarAlimento(a.idAlimento)}
+                className="bg-red-600 px-4 py-2 rounded"
+              >
+                Remover
+              </button>
+            </li>
+          );
+        })}
       </ul>
     );
   }
 
-  // =============================
-  // RENDER
-  // =============================
   return (
     <div className="p-6 bg-gray-900 text-white min-h-screen">
       <h1 className="text-3xl font-bold mb-6">Gerenciar Alimentos</h1>
 
-      {erro && <p className="bg-red-500 p-3 rounded mb-4">{erro}</p>}
-
-      {!temFamilia && (
-        <p className="bg-yellow-600 p-3 mb-4 rounded">
-          Você ainda não faz parte de uma família. Vá até "Gerenciar Família" para criar ou entrar em uma.
-        </p>
-      )}
+      {erro && <p className="bg-red-500 p-3 mb-4 rounded">{erro}</p>}
 
       {/* Abas */}
       <div className="flex gap-3 mb-6">
         <button
-          className={`px-4 py-2 rounded ${
-            tab === "meus" ? "bg-blue-600" : "bg-gray-700"
-          }`}
+          className={`px-4 py-2 rounded ${tab === "meus" ? "bg-blue-600" : "bg-gray-700"}`}
           onClick={() => {
             setTab("meus");
             carregarMeusAlimentos();
@@ -223,9 +191,9 @@ export default function Foods() {
         </button>
 
         <button
-          className={`px-4 py-2 rounded ${
-            tab === "familia" ? "bg-blue-600" : "bg-gray-700"
-          } ${!temFamilia && "opacity-40 cursor-not-allowed"}`}
+          className={`px-4 py-2 rounded 
+            ${tab === "familia" ? "bg-blue-600" : "bg-gray-700"} 
+            ${!temFamilia && "opacity-40 cursor-not-allowed"}`}
           disabled={!temFamilia}
           onClick={() => {
             if (temFamilia) {
@@ -238,16 +206,13 @@ export default function Foods() {
         </button>
 
         <button
-          className={`px-4 py-2 rounded ${
-            tab === "registrar" ? "bg-blue-600" : "bg-gray-700"
-          }`}
+          className={`px-4 py-2 rounded ${tab === "registrar" ? "bg-blue-600" : "bg-gray-700"}`}
           onClick={() => setTab("registrar")}
         >
           Registrar alimento
         </button>
       </div>
 
-      {/* Conteúdo */}
       {tab === "meus" && <Lista dados={meusAlimentos} />}
       {tab === "familia" && temFamilia && <Lista dados={familiaAlimentos} />}
 
@@ -257,8 +222,8 @@ export default function Foods() {
           <input
             value={novoNome}
             onChange={(e) => setNovoNome(e.target.value)}
-            required
             className="w-full bg-gray-700 p-2 rounded mb-3"
+            required
           />
 
           <label className="block mb-2">Data de validade</label>
@@ -266,16 +231,16 @@ export default function Foods() {
             type="date"
             value={novaValidade}
             onChange={(e) => setNovaValidade(e.target.value)}
-            required
             className="w-full bg-gray-700 p-2 rounded mb-3"
+            required
           />
 
           <label className="block mb-2">Categoria</label>
           <select
             value={novaCategoria}
             onChange={(e) => setNovaCategoria(e.target.value)}
-            required
             className="w-full bg-gray-700 p-2 rounded mb-3"
+            required
           >
             <option value="">Selecione...</option>
             <option value="GRAO">Grão</option>
