@@ -24,7 +24,7 @@ export default function Foods() {
 
   async function verificarFamilia() {
     try {
-      const res = await fetch("http://localhost:8080/usuarios/me", {
+      const res = await fetch("http://34.204.186.82:8080/usuarios/me", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -40,7 +40,7 @@ export default function Foods() {
   async function carregarMeusAlimentos() {
     try {
       setLoading(true);
-      const resp = await fetch("http://localhost:8080/alimentos", {
+      const resp = await fetch("http://34.204.186.82:8080/alimentos", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!resp.ok) throw new Error("Erro ao carregar alimentos");
@@ -55,7 +55,7 @@ export default function Foods() {
   async function carregarFamiliaAlimentos() {
     try {
       setLoading(true);
-      const resp = await fetch("http://localhost:8080/alimentos/familia", {
+      const resp = await fetch("http://34.204.186.82:8080/alimentos/familia", {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!resp.ok) throw new Error("Erro ao carregar alimentos da família");
@@ -76,7 +76,7 @@ export default function Foods() {
     e.preventDefault();
 
     try {
-      const resp = await fetch("http://localhost:8080/alimentos", {
+      const resp = await fetch("http://34.204.186.82:8080/alimentos", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -108,7 +108,7 @@ export default function Foods() {
     if (!confirm("Deseja excluir este alimento?")) return;
 
     try {
-      const resp = await fetch(`http://localhost:8080/alimentos/${id}`, {
+      const resp = await fetch(`http://34.204.186.82:8080/alimentos/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

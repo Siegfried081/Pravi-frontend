@@ -19,7 +19,7 @@ export default function Family() {
     try {
       setLoading(true);
 
-      const response = await fetch("http://localhost:8080/familias/minha", {
+      const response = await fetch("http://34.204.186.82:8080/familias/minha", {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -49,7 +49,7 @@ export default function Family() {
     setSucesso("");
 
     try {
-      const response = await fetch("http://localhost:8080/familias/criar", {
+      const response = await fetch("http://34.204.186.82:8080/familias/criar", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -81,7 +81,7 @@ export default function Family() {
     setSucesso("");
 
     try {
-      const response = await fetch("http://localhost:8080/familias/entrar", {
+      const response = await fetch("http://34.204.186.82:8080/familias/entrar", {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -111,7 +111,7 @@ export default function Family() {
     if (!confirm("Deseja realmente sair da família?")) return;
 
     try {
-      const response = await fetch("http://localhost:8080/familias/sair", {
+      const response = await fetch("http://34.204.186.82:8080/familias/sair", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });

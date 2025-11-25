@@ -34,7 +34,7 @@ export default function Dashboard() {
       try {
         setErro("");
 
-        const response = await fetch("http://localhost:8080/dashboard/resumo", {
+        const response = await fetch("http://34.204.186.82:8080/dashboard/resumo", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -72,7 +72,7 @@ export default function Dashboard() {
     const token = localStorage.getItem("token");
 
     try {
-      await fetch("http://localhost:8080/dashboard/enviar-aviso", {
+      await fetch("http://34.204.186.82:8080/dashboard/enviar-aviso", {
         method: "POST",
         headers: { Authorization: `Bearer ${token}` },
       });
